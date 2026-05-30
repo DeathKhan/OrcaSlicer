@@ -515,6 +515,12 @@ namespace Slic3r {
     bool ElegooLink::test(wxString &curl_msg) const{
         switch (classify_printer_model(m_printerModel)) {
         case ElegooPrinterType::Other:
+            // host_type is ElegooLink but printer_model may be unset (e.g. custom presets);
+            // probe CC2 then legacy Centauri before falling back to OctoPrint.
+            if (elegoo_cc2_test(curl_msg))
+                return true;
+            if (elegoo_test(curl_msg))
+                return true;
             return OctoPrint::test(curl_msg);
         case ElegooPrinterType::CC2:
             return elegoo_cc2_test(curl_msg);
@@ -611,6 +617,10 @@ namespace Slic3r {
     {
         switch (classify_printer_model(m_printerModel)) {
         case ElegooPrinterType::Other:
+            if (elegoo_cc2_test_with_resolved_ip(msg))
+                return true;
+            if (elegoo_test_with_resolved_ip(msg))
+                return true;
             return OctoPrint::test_with_resolved_ip(msg);
         case ElegooPrinterType::CC2:
             return elegoo_cc2_test_with_resolved_ip(msg);
